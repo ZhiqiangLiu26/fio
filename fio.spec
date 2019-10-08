@@ -1,7 +1,7 @@
 %define alicloud_base_release 1
 Name:		fio
-Version:	3.1
-Release:	2.%{alicloud_base_release}%{?dist}
+Version:	3.7
+Release:	1.%{alicloud_base_release}%{?dist}
 Summary:	Multithreaded IO generation tool
 
 Group:		Applications/System
@@ -55,8 +55,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/%{name}/*
 
 %changelog
-* Fri Dec 07 2018 leilei.lin <leilei.lin@alibaba-inc.com> - 3.1-2
-- rebuild for alinux7u6-os
+* Tue Oct 08 2019 Wei Liu - Aliyun Linux OS Team <alicloud-linux-os@service.aliyun.com> - 3.7-1.1.al7
+- Rebuild for Aliyun Linux
+
+* Mon Feb 25 2019 Eric Sandeen <sandeen@redhat.com> 3.7-1
+- New upstream version
+- Adds libpmem ioengine (#1672362)
 
 * Tue Oct 24 2017 Eric Sandeen <sandeen@redhat.com> 3.1-2
 - Add new build deps for more features
