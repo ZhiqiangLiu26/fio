@@ -1,24 +1,28 @@
 %define alicloud_base_release 1
+
 Name:		fio
-Version:	3.7
+Version:	3.17
 Release:	1.%{alicloud_base_release}%{?dist}
 Summary:	Multithreaded IO generation tool
 
-Group:		Applications/System
 License:	GPLv2
 URL:		http://git.kernel.dk/?p=fio.git;a=summary
 Source:		http://brick.kernel.dk/snaps/%{name}-%{version}.tar.bz2
 
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-
+BuildRequires:	gcc
 BuildRequires:	libaio-devel
 BuildRequires:	zlib-devel
+BuildRequires:	python3-devel
 %ifarch x86_64
 BuildRequires:	libpmem-devel
 BuildRequires:	libpmemblk-devel
 %endif
+
+%ifnarch %{arm} i686
 BuildRequires:	librbd1-devel
-%ifnarch %{arm} s390 s390x
+%endif
+
+%ifnarch %{arm}
 BuildRequires:	numactl-devel
 BuildRequires:	librdmacm-devel
 %endif
@@ -34,19 +38,21 @@ one wants to simulate.
 %prep
 %setup -q
 
+pathfix.py -i %{__python3} -pn \
+ tools/fio_jsonplus_clat2csv \
+ tools/fiologparser.py \
+ tools/hist/*.py \
+ tools/plot/fio2gnuplot \
+ t/steadystate_tests.py
+
 %build
 ./configure --disable-optimizations
-EXTFLAGS="$RPM_OPT_FLAGS" make V=1 %{?_smp_mflags}
+EXTFLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS" make V=1 %{?_smp_mflags}
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install prefix=%{_prefix} mandir=%{_mandir} DESTDIR=$RPM_BUILD_ROOT INSTALL="install -p"
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
-%defattr(-,root,root,-)
 %doc README REPORTING-BUGS COPYING HOWTO examples
 %doc MORAL-LICENSE GFIO-TODO SERVER-TODO STEADYSTATE-TODO
 %dir %{_datadir}/%{name}
@@ -55,12 +61,77 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/%{name}/*
 
 %changelog
-* Tue Oct 08 2019 Wei Liu - Aliyun Linux OS Team <alicloud-linux-os@service.aliyun.com> - 3.7-1.1.al7
-- Rebuild for Aliyun Linux
+* Wed Feb 5 2020 Chunmei Xu <xuchunmei@linux.alibaba.com> 3.17-1.1
+- Rebuild for Alibaba Cloud Linux
 
-* Mon Feb 25 2019 Eric Sandeen <sandeen@redhat.com> 3.7-1
+* Mon Dec 16 2019 Eric Sandeen <sandeen@redhat.com> 3.17-1
 - New upstream version
-- Adds libpmem ioengine (#1672362)
+
+* Wed Nov 06 2019 Richard W.M. Jones <rjones@redhat.com> 3.16-2
+- Enable Network Block Device (libnbd) engine.
+
+* Sat Sep 21 2019 Eric Sandeen <sandeen@redhat.com> 3.16-1
+- New upstream version
+
+* Fri Aug 16 2019 Eric Sandeen <sandeen@redhat.com> 3.15-1
+- New upstream version
+
+* Thu Aug 08 2019 Eric Sandeen <sandeen@redhat.com> 3.14-3
+- Make all scripts explicitly call python3 (#1738819)
+
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.14-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Wed May 22 2019 Eric Sandeen <sandeen@redhat.com> 3.14-1
+- New upstream version
+
+* Thu Feb 14 2019 Eric Sandeen <sandeen@redhat.com> 3.13-1
+- New upstream version
+
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.12-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Thu Jan 17 2019 Eric Sandeen <sandeen@redhat.com> 3.12-1
+- New upstream version
+
+* Wed Aug 22 2018 Eric Sandeen <sandeen@redhat.com> 3.8-1
+- New upstream version
+
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.7-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Fri Jun 01 2018 Eric Sandeen <sandeen@redhat.com> 3.7-1
+- New upstream version
+
+* Fri Jun 01 2018 Eric Sandeen <sandeen@redhat.com> 3.6-3
+- Complete the conversion to python3
+
+* Wed May 16 2018 Eric Sandeen <sandeen@redhat.com> 3.6-2
+- Make all python scripts python3 compliant and explicit
+
+* Wed Apr 18 2018 Eric Sandeen <sandeen@redhat.com> 3.6-1
+- New upstream version
+
+* Mon Feb 26 2018 Eric Sandeen <sandeen@redhat.com> 3.4-2
+- BuildRequires: gcc
+
+* Fri Feb 16 2018 Eric Sandeen <sandeen@redhat.com> 3.4-1
+- New upstream version
+
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.3-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Thu Feb  1 2018 Florian Weimer <fweimer@redhat.com> - 3.3-2
+- Build with linker flags from redhat-rpm-config
+
+* Wed Dec 27 2017 Eric Sandeen <sandeen@redhat.com> 3.3-1
+- New upstream version
+
+* Mon Nov 06 2017 Eric Sandeen <sandeen@redhat.com> 3.2-1
+- New upstream version
+
+* Wed Oct 25 2017 Dan Horák <dan[at]danny.cz> 3.1-3
+- Add build deps for s390x
 
 * Tue Oct 24 2017 Eric Sandeen <sandeen@redhat.com> 3.1-2
 - Add new build deps for more features
