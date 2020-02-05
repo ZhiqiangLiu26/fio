@@ -1,0 +1,50 @@
+From 3f1e3af7cff07d4aedcd9a58ae00cb1a2189fcc2 Mon Sep 17 00:00:00 2001
+From: Keith Busch <kbusch@kernel.org>
+Date: Tue, 14 Jan 2020 13:24:24 -0800
+Subject: [PATCH 58/77] engines/io_uring: use fixed opcodes for pre-mapped
+ buffers
+
+Use the correct opcode when for reads and writes using the fixedbuf
+option, otherwise EINVAL errors will be returned to these requests.
+
+Fixes: b10b1e70a ("io_uring: add option for non-vectored read/write commands")
+Signed-off-by: Keith Busch <kbusch@kernel.org>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+---
+ engines/io_uring.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/engines/io_uring.c b/engines/io_uring.c
+index 4f6a967..329f2f0 100644
+--- a/engines/io_uring.c
++++ b/engines/io_uring.c
+@@ -84,6 +84,11 @@ static const int ddir_to_op[2][2] = {
+ 	{ IORING_OP_WRITEV, IORING_OP_WRITE }
+ };
+ 
++static const int fixed_ddir_to_op[2] = {
++	IORING_OP_READ_FIXED,
++	IORING_OP_WRITE_FIXED
++};
++
+ static int fio_ioring_sqpoll_cb(void *data, unsigned long long *val)
+ {
+ 	struct ioring_options *o = data;
+@@ -189,12 +194,13 @@ static int fio_ioring_prep(struct thread_data *td, struct io_u *io_u)
+ 	}
+ 
+ 	if (io_u->ddir == DDIR_READ || io_u->ddir == DDIR_WRITE) {
+-		sqe->opcode = ddir_to_op[io_u->ddir][!!o->nonvectored];
+ 		if (o->fixedbufs) {
++			sqe->opcode = fixed_ddir_to_op[io_u->ddir];
+ 			sqe->addr = (unsigned long) io_u->xfer_buf;
+ 			sqe->len = io_u->xfer_buflen;
+ 			sqe->buf_index = io_u->index;
+ 		} else {
++			sqe->opcode = ddir_to_op[io_u->ddir][!!o->nonvectored];
+ 			if (o->nonvectored) {
+ 				sqe->addr = (unsigned long)
+ 						ld->iovecs[io_u->index].iov_base;
+-- 
+1.8.3.1
+

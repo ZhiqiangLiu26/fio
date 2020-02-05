@@ -1,13 +1,20 @@
-%define alicloud_base_release 1
+%define alicloud_base_release 2
 
 Name:		fio
 Version:	3.17
-Release:	1.%{alicloud_base_release}%{?dist}
+Release:	1.%{alicloud_base_release}%{?dist}.alnx
 Summary:	Multithreaded IO generation tool
 
 License:	GPLv2
 URL:		http://git.kernel.dk/?p=fio.git;a=summary
 Source:		http://brick.kernel.dk/snaps/%{name}-%{version}.tar.bz2
+Patch0:		0001-io_uring-add-option-for-non-vectored-read-write-comm.patch
+Patch1:		0002-io_uring-Enable-io_uring-ioengine-on-aarch64-arch.patch
+Patch2:		0003-io_u-fix-rate-limiting-to-handle-file-wrap-around.patch
+Patch3:		0004-Change-off64_t-into-uint64_t.patch
+Patch4:		0005-io_uring-set-sqe-iopriority-if-prio-prioclass-is-set.patch
+Patch5:		0006-engines-io_uring-use-fixed-opcodes-for-pre-mapped-bu.patch
+Patch6:		0007-Per-command-priority-Priority-logging-and-libaio-io_.patch
 
 BuildRequires:	gcc
 BuildRequires:	libaio-devel
@@ -36,7 +43,7 @@ The typical use of fio is to write a job file matching the io load
 one wants to simulate.
 
 %prep
-%setup -q
+%autosetup -p1
 
 pathfix.py -i %{__python3} -pn \
  tools/fio_jsonplus_clat2csv \
@@ -61,6 +68,9 @@ make install prefix=%{_prefix} mandir=%{_mandir} DESTDIR=$RPM_BUILD_ROOT INSTALL
 %{_datadir}/%{name}/*
 
 %changelog
+* Wed Feb 5 2020 Chunmei Xu <xuchunmei@linux.alibaba.com> 3.17-1.2.alnx
+- backport patches to support io_uring
+
 * Wed Feb 5 2020 Chunmei Xu <xuchunmei@linux.alibaba.com> 3.17-1.1
 - Rebuild for Alibaba Cloud Linux
 

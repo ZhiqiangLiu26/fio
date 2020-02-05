@@ -1,0 +1,39 @@
+From aae515f4e1cb0b3c003e127200d344d807032a79 Mon Sep 17 00:00:00 2001
+From: Zhenyu Ye <yezhenyu2@huawei.com>
+Date: Wed, 25 Dec 2019 08:02:57 -0700
+Subject: [PATCH 15/77] io_uring: Enable io_uring ioengine on aarch64 arch
+
+This patch enables io_uring ioengine on aarch64 arch.
+
+Signed-off-by: Zhenyu Ye <yezhenyu2@huawei.com>
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+---
+ arch/arch-aarch64.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arch-aarch64.h b/arch/arch-aarch64.h
+index 2a86cc5..de9b349 100644
+--- a/arch/arch-aarch64.h
++++ b/arch/arch-aarch64.h
+@@ -8,6 +8,18 @@
+ 
+ #define FIO_ARCH	(arch_aarch64)
+ 
++#define ARCH_HAVE_IOURING
++
++#ifndef __NR_sys_io_uring_setup
++#define __NR_sys_io_uring_setup		425
++#endif
++#ifndef __NR_sys_io_uring_enter
++#define __NR_sys_io_uring_enter		426
++#endif
++#ifndef __NR_sys_io_uring_register
++#define __NR_sys_io_uring_register	427
++#endif
++
+ #define nop		do { __asm__ __volatile__ ("yield"); } while (0)
+ #define read_barrier()	do { __sync_synchronize(); } while (0)
+ #define write_barrier()	do { __sync_synchronize(); } while (0)
+-- 
+1.8.3.1
+

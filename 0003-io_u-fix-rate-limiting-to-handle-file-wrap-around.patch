@@ -1,0 +1,52 @@
+From 970d9000a32a57b7a18333ec612e1a19276b0c87 Mon Sep 17 00:00:00 2001
+From: Ken Barr <kenbarr@google.com>
+Date: Fri, 3 Jan 2020 15:11:44 -0500
+Subject: [PATCH 23/77] io_u: fix rate limiting to handle file wrap-around
+
+When using "rate" with "time_based", the amount of time to sleep should be based
+on the invocation time (epoch) rather than the start time of a given loop
+(start) because no other statistics are reset when a file is re-opened.
+Prior to this change, a wrap-around would cause the rate_ddir code to compute
+that ~0 time had elapsed since the last I/O (i.e., a near-infinite rate), and
+trigger a very long sleep in an attempt to adjust to the given rate.
+
+Testing done:
+  Using configuration below...
+    Before: starts at 100 MB/sec and drops to 0 after ~10 sec (upon wrap) before
+    recovering at t ~ 20.
+    After: maintains 100 MB/sec for the duration of the test
+
+  [repro]
+  # 1 GiB + 1 Byte, to force a fill_io_u failure, the file to close and
+  # reopen, and the start timestamp to reset.
+  size=1073741825
+  bs=2097152
+  direct=1
+  ioengine=psync
+  readwrite=write
+
+  runtime=30s
+  time_based
+  rate=100m
+
+  filename=data_file
+---
+ io_u.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/io_u.c b/io_u.c
+index b5c3133..4a0c725 100644
+--- a/io_u.c
++++ b/io_u.c
+@@ -644,7 +644,7 @@ static enum fio_ddir rate_ddir(struct thread_data *td, enum fio_ddir ddir)
+ 	uint64_t now;
+ 
+ 	assert(ddir_rw(ddir));
+-	now = utime_since_now(&td->start);
++	now = utime_since_now(&td->epoch);
+ 
+ 	/*
+ 	 * if rate_next_io_time is in the past, need to catch up to rate
+-- 
+1.8.3.1
+
