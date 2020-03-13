@@ -1,4 +1,4 @@
-%define alicloud_base_release 2
+%define alicloud_base_release 3
 
 Name:		fio
 Version:	3.17
@@ -15,6 +15,7 @@ Patch3:		0004-Change-off64_t-into-uint64_t.patch
 Patch4:		0005-io_uring-set-sqe-iopriority-if-prio-prioclass-is-set.patch
 Patch5:		0006-engines-io_uring-use-fixed-opcodes-for-pre-mapped-bu.patch
 Patch6:		0007-Per-command-priority-Priority-logging-and-libaio-io_.patch
+Patch7:         0008-engines-io_uring-delete-fio_option_is_set-calls-when.patch
 
 BuildRequires:	gcc
 BuildRequires:	libaio-devel
@@ -68,6 +69,9 @@ make install prefix=%{_prefix} mandir=%{_mandir} DESTDIR=$RPM_BUILD_ROOT INSTALL
 %{_datadir}/%{name}/*
 
 %changelog
+* Fri Mar 13 2020 Chunmei Xu <xuchunmei@linux.alibaba.com> 3.17-1.3.alnx
+- engines/io_uring: delete fio_option_is_set() calls when submitting sqes
+
 * Wed Feb 5 2020 Chunmei Xu <xuchunmei@linux.alibaba.com> 3.17-1.2.alnx
 - backport patches to support io_uring
 
